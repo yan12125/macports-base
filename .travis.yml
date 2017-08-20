@@ -1,3 +1,30 @@
 language: c
-os: osx
+matrix:
+  include:
+  - os: osx
+    osx_image: xcode8.3
+  - os: osx
+    osx_image: xcode7.3
+  - os: osx
+    osx_image: xcode6.4
+before_install:
+- sudo mkdir /opt/local.old
+- sudo mv /usr/local/* /opt/local.old && hash -r
 script: ./configure && make && sudo make install && make test
+before_deploy:
+- sed -i "" "s/-v selfupdate/version/" portmgr/dmg/postflight
+- sudo install portmgr/dmg/postflight /opt/local/
+- sudo install src/*.tcl /opt/local/
+- export OS_MAJOR=$(uname -r | cut -f 1 -d .)
+- tar -cjf MacPorts-$OS_MAJOR.tar.bz2 /opt/local
+- sed -i "" "s/OS_MAJOR/$OS_MAJOR/g" .bintray.json
+- sudo mv /opt/local.old/* /usr/local && hash -r
+deploy:
+  provider: bintray
+  file: .bintray.json
+  user: l2dybot
+  skip_cleanup: true
+  on:
+    branch: travis-ci
+  key:
+    secure: bV7Y2Ti+DOlGfXa93mx383cozKcC8ut4L0YCcSVCFY4cmHb9yBiHh1e4z5p7DY+yqbzXABvtalEKaQeWhOPrAle16SNh9OHlJx6EO0dcwmIS1lxPuTYQ6mGbuA7W278G7xxWgDSynL8Rdj/xGrT8JR7jXST2aghI6dnTpcu6unowZd30AnLRp/U6VjUbPKsXUCGg/ISZTudWMJhr11wmORETlICW9lvr8iPOSPNewC/tdCj3LfY1sT7FOsUZ+CpZk3Ivi8fem4CwL3EwP1WdqScqGwO5xTplSmL/vugxBipHDknm7bP1XFb6Yi7jNsKETuV4FlFZ1oOSrkOwS+M8hOuMyQB/PYkDld86P3VSkhF/h4HZi5b/nXUTNl9021G71GoxwgKrYaorfOAf4EqgnTtHnv6GMBXFTzjhdNOv5i5Ru+P3vIFh6Pa421avIhIg3nWUfoSgnCMRekyqQZf277rmiDb7BWBRs37AGGJyYtyezVab4/30Azp7QmbcGEI9TSJGt6B5JAM5v00WMUJ8OLnfdMoCyccKA5SRhoS/SKuZliQ0y8s02+3OEP1lNTGlr2snLcHdukPeqVCquUOSCypB9SP3sleQ2Cb/uTvxHP9bnNFr2i43V+kSIP8i0yh47qZ2c0TvsrUcwAqHWcV7SliWH6Em9CjcBA9yiQo0Nc4=
