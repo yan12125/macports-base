@@ -874,31 +874,8 @@ AC_DEFUN([MP_PROG_DAEMONDO],[
 #   sets CFLAGS_LIBCURL and LDFLAGS_LIBCURL
 #---------------------------------------
 AC_DEFUN([MP_LIBCURL_FLAGS],[
-	AC_ARG_WITH(curlprefix,
-		   [  --with-curlprefix       base directory for the curl install ('/usr', '/usr/local', ...)],
-		   [  curlprefix=$withval ])
-
-	if test "x$curlprefix" = "x"; then
-		AC_PATH_PROG([CURL_CONFIG], [curl-config])
-	else
-		AC_PATH_PROG([CURL_CONFIG], [curl-config], , [$curlprefix/bin])
-	fi
-
-	if test "x$CURL_CONFIG" = "x"; then
-		AC_MSG_ERROR([cannot find curl-config. Is libcurl installed?])
-	fi
-
-	CFLAGS_LIBCURL=$($CURL_CONFIG --cflags)
-	if test "x$curlprefix" = "x"; then
-		# System curl-config emits absurd output for --libs
-		# See rdar://7244457
-		LDFLAGS_LIBCURL="-lcurl"
-	else
-		# Due to a bug in dist, --arch flags are improperly supplied by curl-config.
-		# Get rid of them.
-		LDFLAGS_LIBCURL=$($CURL_CONFIG --libs | [sed 's/-arch [A-Za-z0-9_]* //g'])
-	fi
-
+	CFLAGS_LIBCURL="-I ../../vendor/vendor-destroot/opt/local/libexec/macports/include"
+	LDFLAGS_LIBCURL="-L ../../vendor/vendor-destroot/opt/local/libexec/macports/lib -lcurl -lssl -lcrypto -lz"
 	AC_SUBST(CFLAGS_LIBCURL)
 	AC_SUBST(LDFLAGS_LIBCURL)
 ])

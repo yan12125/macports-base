@@ -10,13 +10,20 @@ TCLX_TARGETS=		@VENDOR_TCLX_INSTALL@
 TCLLIB_SUBDIR=		@VENDOR_TCLLIB_SUBDIR@
 TCLLIB_TARGETS= 	@VENDOR_TCLLIB_INSTALL@
 
+LIBERSSL_SUBDIR=	@VENDOR_LIBERSSL_SUBDIR@
+LIBERSSL_TARGETS=	@VENDOR_LIBERSSL_INSTALL@
+
+CURL_SUBDIR=		@VENDOR_CURL_SUBDIR@
+CURL_TARGETS=		@VENDOR_CURL_INSTALL@
+
 PREFIX=			@prefix@
 DESTROOT=   		@abs_top_builddir@/vendor/vendor-destroot
 
 .PHONY: all clean distclean install destroot test
 .PHONY: destroot-tcl destroot-tcllthread destroot-tclx destroot-tcllib
-.PHONY: install-tcl install-tcllthread install-tclx install-tcllib
-.PHONY: %-tcl %-tcllthread %-tclx %-tcllib
+.PHONY: install-tcl install-tcllthread install-tclx install-tcllib install-libressl install-curl
+.PHONY: configure-libressl configure-curl
+.PHONY: %-tcl %-tcllthread %-tclx %-tcllib %-libressl %-curl
 
 # for make all, run destroot (where destroot will depend on all of each
 # subpackage)
@@ -47,7 +54,23 @@ all-tclx: all-tcl
 # tcllib requires a working tclsh
 all-tcllib: all-tcl
 
-destroot: destroot-tcl destroot-tclthread destroot-tclx destroot-tcllib
+%-libressl: configure-libressl
+	@echo ===\> making $(@:%-libressl=%) in ${DIRPRFX}@VENDOR_LIBERSSL_SUBDIR@
+	@umask 0022; $(MAKE) -C @VENDOR_LIBERSSL_SUBDIR@ $(@:%-libressl=%)
+
+configure-libressl:
+	@echo ===\> running $(@:%-libressl=%) in ${DIRPRFX}@VENDOR_LIBERSSL_SUBDIR@
+	@umask 0022; cd @VENDOR_LIBERSSL_SUBDIR@ && ./configure --prefix=${DESTROOT}${PREFIX}/libexec/macports --enable-static --disable-shared CFLAGS=-fPIC CXXFLAGS=-fPIC
+
+%-curl: configure-curl
+	@echo ===\> making $(@:%-curl=%) in ${DIRPRFX}@VENDOR_CURL_SUBDIR@
+	@umask 0022; $(MAKE) -C @VENDOR_CURL_SUBDIR@ $(@:%-curl=%)
+
+configure-curl: install-libressl
+	@echo ===\> running $(@:%-curl=%) in ${DIRPRFX}@VENDOR_CURL_SUBDIR@
+	@umask 0022; cd @VENDOR_CURL_SUBDIR@ && ./configure --prefix=${DESTROOT}${PREFIX}/libexec/macports --enable-static --disable-shared --with-ssl=${DESTROOT}${PREFIX}/libexec/macports --without-nghttp2 --without-libidn2 --disable-ldap --without-libpsl CFLAGS=-fPIC CXXFLAGS=-fPIC
+
+destroot: destroot-tcl destroot-tclthread destroot-tclx destroot-tcllib install-libressl install-curl
 destroot-tcl: all-tcl
 	@echo ===\> staging to destroot in ${DIRPRFX}@VENDOR_TCL_SUBDIR@
 	@umask 0022; $(MAKE) -C @VENDOR_TCL_SUBDIR@ DESTDIR=${DESTROOT} @VENDOR_TCL_INSTALL@
@@ -92,9 +115,17 @@ install-tcllib:
 	@umask 0022; $(MAKE) -C @VENDOR_TCLLIB_SUBDIR@ @VENDOR_TCLLIB_INSTALL@
 	@chmod -R ugo+rX $(DESTDIR)${PREFIX}/libexec/macports/lib/tcllib*
 
+install-libressl: all-libressl
+	@echo ===\> making $(@:%-curl=%) in ${DIRPRFX}@VENDOR_LIBERSSL_SUBDIR@
+	@umask 0022; $(MAKE) -C @VENDOR_LIBERSSL_SUBDIR@ @VENDOR_LIBERSSL_INSTALL@
+
+install-curl: all-curl
+	@echo ===\> making $(@:%-curl=%) in ${DIRPRFX}@VENDOR_CURL_SUBDIR@
+	@umask 0022; $(MAKE) -C @VENDOR_CURL_SUBDIR@ @VENDOR_CURL_INSTALL@
+
 test:
 
-clean: clean-tcl clean-tcllib clean-tclx clean-tclthread
+clean: clean-tcl clean-tcllib clean-tclx clean-tclthread clean-curl
 	rm -rf ${DESTROOT}
 
 distclean: distclean-tcl distclean-tcllib distclean-tclx distclean-tclthread
