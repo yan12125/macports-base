@@ -360,6 +360,12 @@ VENDOR_TCLLIB_INSTALL="install-libraries"
 AC_SUBST(VENDOR_TCLLIB_SUBDIR)
 AC_SUBST(VENDOR_TCLLIB_INSTALL)
 
+MP_CONFIG_SUBDIR([vendor/xz], [--prefix=${macports_libexec_dir}])
+VENDOR_XZ_SUBDIR=xz
+VENDOR_XZ_INSTALL="install"
+AC_SUBST(VENDOR_XZ_SUBDIR)
+AC_SUBST(VENDOR_XZ_INSTALL)
+
 # Load tclConfig.sh from our private install of Tcl
 AC_MSG_CHECKING([for Tcl configuration])
 TCL_BIN_DIR=`(cd vendor/tcl${tcl_version}/unix; pwd)`
