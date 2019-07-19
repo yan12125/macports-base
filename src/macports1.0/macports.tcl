@@ -57,7 +57,7 @@ namespace eval macports {
         master_site_local patch_site_local archive_site_local buildfromsource \
         revupgrade_autorun revupgrade_mode revupgrade_check_id_loadcmds \
         host_blacklist preferred_hosts sandbox_enable sandbox_network delete_la_files cxx_stdlib \
-        packagemaker_path default_compilers pkg_post_unarchive_deletions ui_interactive"
+        packagemaker_path default_compilers pkg_post_unarchive_deletions ui_interactive use_distfiles_mirrors"
     variable user_options {}
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
@@ -69,7 +69,7 @@ namespace eval macports {
         applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
         os_arch os_endian os_version os_major os_minor os_platform os_subplatform macosx_version macosx_sdk_version macosx_deployment_target \
         packagemaker_path default_compilers sandbox_enable sandbox_network delete_la_files cxx_stdlib \
-        pkg_post_unarchive_deletions $user_options"
+        pkg_post_unarchive_deletions use_distfiles_mirrors $user_options"
 
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
@@ -656,7 +656,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         macports::host_cache \
         macports::delete_la_files \
         macports::cxx_stdlib \
-        macports::hfscompression
+        macports::hfscompression \
+        macports::use_distfiles_mirrors
 
     # Set the system encoding to utf-8
     encoding system utf-8
@@ -1140,6 +1141,10 @@ match macports.conf.default."
 
     if {![info exists macports::sandbox_network]} {
         set macports::sandbox_network no
+    }
+
+    if {![info exists macports::use_distfiles_mirrors]} {
+        set macports::use_distfiles_mirrors yes
     }
 
     # make tools we run operate in UTF-8 mode
